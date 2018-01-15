@@ -19,24 +19,27 @@ class ViewController: UIViewController {
 	var pixelSize: UInt = 60
   
 
-	@IBAction func changePixelSize(_ sender: AnyObject) {
+	@IBAction func actionApplyFilter (_ sender: AnyObject) {
 		if let slider = sender as? UISlider {
 			pixelSize = UInt(slider.value)
 
 			queue.async {
+        self.applyFilterPixelate()
+				//self.applyFilterMPSCompound()
 
-				self.applyFilterMPSCompound()
-
-				let finalResult = self.image(from: self.outTexture)
+				let finalResult = self.makeImage(from: self.outTexture)
 
 				DispatchQueue.main.async {
 					self.imageView.image = finalResult
-				}
+				} // end of DispatchQueue.main.async
 
-			}
+			} // end of queue.async
 
-		}
-	}
+		} // end of if let slider = sender as? UISlider
+    
+	} // end of func actionApplyFilter (_ sender: AnyObject)
+  
+
 
 	/// The queue to process Metal
 	let queue = DispatchQueue(label: "com.invasivecode.metalQueue")
@@ -99,7 +102,7 @@ class ViewController: UIViewController {
 
 			self.applyFilterMPSCompound()
 
-			let finalResult = self.image(from: self.outTexture)
+			let finalResult = self.makeImage(from: self.outTexture)
 			DispatchQueue.main.async {
 				self.imageView.image = finalResult
 			}
@@ -112,7 +115,7 @@ class ViewController: UIViewController {
 		guard let image = UIImage(named: "invasivecode") else {
 			fatalError("Can't read image")
 		}
-		inTexture = texture(from: image)
+		inTexture = makeTexture(from: image)
     
     let imageSize: CGSize = (image.size)
     let intermediateTextureDesciptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: MTLPixelFormat.rgba8Unorm, width: Int(imageSize.width), height: Int(imageSize.height), mipmapped: false)
@@ -121,7 +124,7 @@ class ViewController: UIViewController {
 	}
 
 
-	func applyFilter() {
+	func applyFilterPixelate() {
 
 		let commandBuffer = commandQueue.makeCommandBuffer()
 		let commandEncoder = commandBuffer.makeComputeCommandEncoder()
@@ -157,7 +160,7 @@ class ViewController: UIViewController {
   }
 
 
-	func texture(from image: UIImage) -> MTLTexture {
+	func makeTexture(from image: UIImage) -> MTLTexture {
 
 		guard let cgImage = image.cgImage else {
 			fatalError("Can't open image \(image)")
@@ -176,7 +179,7 @@ class ViewController: UIViewController {
 	}
 
 
-	func image(from texture: MTLTexture) -> UIImage {
+	func makeImage(from texture: MTLTexture) -> UIImage {
 
 		let imageByteCount = texture.width * texture.height * bytesPerPixel
 		let bytesPerRow = texture.width * bytesPerPixel
